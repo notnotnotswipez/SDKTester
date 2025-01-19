@@ -22,4 +22,20 @@ namespace SDKTester.Patches
             }
         }
     }
+
+    // Cancel fusions initial reload of the scene when a server starts.
+    [HarmonyPatch(typeof(SceneStreamer), nameof(SceneStreamer.Reload))]
+    public class SceneStreamerPatchesReload
+    {
+        public static bool Prefix()
+        {
+            if (Core.reloadNeedsPrevention)
+            {
+                Core.reloadNeedsPrevention = false;
+                return false;
+            }
+
+            return true;
+        }
+    }
 }

@@ -17,14 +17,15 @@ namespace SDKTester
 
         public static string loadLevelOverrideBarcode = "default";
 
-        public static bool fusionServerQueued = false;
+        public static bool reloadNeedsPrevention = false;
 
         public static bool logUltEventCalls = false;
 
         public int timesLoaded = 0;
+        public static int timesToLoadUntilSecondaryActionIsCalled = 0;
 
-        public float timer = 5f;
-        public bool waitingForAction = false;
+        private static float timer = 5f;
+        private static bool waitingForAction = false;
 
         private Dictionary<string, GenericCommand> commandHandlers = new Dictionary<string, GenericCommand>();
 
@@ -40,14 +41,11 @@ namespace SDKTester
                 MakeDefaultFile();
                 ParseCommands();
             }
+        }
 
-            Hooking.OnUIRigCreated += () =>
-            {
-                waitingForAction = true;
-                timer = 2f;
-            };
-
-            
+        public static void StartActionTimer(float time) {
+            timer = time;
+            waitingForAction = true;
         }
 
         public override void OnUpdate()
@@ -56,23 +54,15 @@ namespace SDKTester
                 timer -= Time.deltaTime;
                 if (timer <= 0) {
                     waitingForAction = false;
-                    MelonLogger.Msg("Running queued actions.");
 
                     ActionQueuer.ActionQueuer.RunActions();
 
-                    if (fusionServerQueued)
-                    {
-                        timesLoaded++;
-
-                        // We either joined or started a server. (Scene was reloaded twice)
-                        if (timesLoaded == 2)
-                        {
-                            ActionQueuer.ActionQueuer.RunSecondaryActions();
-                        }
-                    }
-                    else
+                    if (timesLoaded >= timesToLoadUntilSecondaryActionIsCalled)
                     {
                         ActionQueuer.ActionQueuer.RunSecondaryActions();
+                    }
+                    else {
+                        timesLoaded++;
                     }
                 }
             }
@@ -80,9 +70,18 @@ namespace SDKTester
 
         public void RegisterAllCommands() {
             RegisterCommand<LoadLevelCommand>();
-            RegisterCommand<FusionStartServerCommand>();
-            RegisterCommand<FusionJoinServerCommand>();
             RegisterCommand<UltEventLogCommand>();
+            RegisterCommand<SpawnItemCommand>();
+            RegisterCommand<SwapAvatarCommand>();
+
+            try
+            {
+                RegisterCommand<FusionStartServerCommand>();
+                RegisterCommand<FusionJoinServerCommand>();
+            }
+            catch (Exception e) {
+                MelonLogger.Error("No Fusion Installed! Skipping registration of Fusion commands.");
+            }
         }
 
         public void RegisterCommand<T>() where T : GenericCommand
@@ -104,7 +103,13 @@ namespace SDKTester
                 string command = spaceSplit[0];
 
                 if (commandHandlers.ContainsKey(command)) {
-                    commandHandlers[command].HandleParameters(spaceSplit);
+                    try
+                    {
+                        commandHandlers[command].HandleParameters(spaceSplit);
+                    }
+                    catch (Exception e) {
+                        MelonLogger.Error("Invalid usage for launch command: " + command);
+                    }
                 }
             }
         }
@@ -114,12 +119,7 @@ namespace SDKTester
             {
                 sw.WriteLine("# ----------------");
                 sw.WriteLine("# Commands available to you:");
-                sw.WriteLine("# load_level <barcode> (default means VOID G114)");
-                sw.WriteLine("# spawn_object <barcode> <x> <y> <z>");
-                sw.WriteLine("# swap_avatar <barcode>");
-                sw.WriteLine("# start_fusion_server");
-                sw.WriteLine("# join_fusion_server <steamid>");
-                sw.WriteLine("# log_ult_events <true/false>");
+                sw.WriteLine("# https://github.com/notnotnotswipez/SDKTester/wiki/Commands");
                 sw.WriteLine("# ---------------- LINES STARTING WITH # ARE NOT READ!");
                 sw.WriteLine("load_level default");
             }

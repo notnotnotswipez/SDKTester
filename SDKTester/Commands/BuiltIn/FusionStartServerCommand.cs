@@ -19,7 +19,7 @@ namespace SDKTester.Commands.BuiltIn
                 NetworkHelper.StartServer();
             });
 
-            Core.fusionServerQueued = true;
+            Core.reloadNeedsPrevention = true;
         }
     }
 }

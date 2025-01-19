@@ -552,10 +552,13 @@
 		<Compile Include="ActionQueuer\ActionQueuer.cs" />
 		<Compile Include="Commands\BuiltIn\FusionJoinServerCommand.cs" />
 		<Compile Include="Commands\BuiltIn\FusionStartServerCommand.cs" />
+		<Compile Include="Commands\BuiltIn\SwapAvatarCommand.cs" />
+		<Compile Include="Commands\BuiltIn\SpawnItemCommand.cs" />
 		<Compile Include="Commands\BuiltIn\UltEventLogCommand.cs" />
 		<Compile Include="Commands\BuiltIn\LoadLevelCommand.cs" />
 		<Compile Include="Commands\GenericCommand.cs" />
 		<Compile Include="Core.cs" />
+		<Compile Include="Patches\ControlUIPatch.cs" />
 		<Compile Include="Patches\SceneStreamerPatches.cs" />
 		<Compile Include="Patches\UltEventPatches.cs" />
 	</ItemGroup>

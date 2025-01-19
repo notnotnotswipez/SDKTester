@@ -22,7 +22,7 @@ namespace SDKTester.Commands.BuiltIn
                 }
             });
 
-            Core.fusionServerQueued = true;
+            Core.timesToLoadUntilSecondaryActionIsCalled = 1;
         }
     }
 }
